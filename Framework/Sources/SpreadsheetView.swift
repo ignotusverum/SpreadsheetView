@@ -372,6 +372,9 @@ public class SpreadsheetView: UIView {
         columnHeaderView.showsHorizontalScrollIndicator = false
         columnHeaderView.showsVerticalScrollIndicator = false
         columnHeaderView.isHidden = true
+        // turn off clipsToBounds so that text can overflow header column
+        // for specific use case where we want header column and content columns to appear as one continuous row
+        columnHeaderView.clipsToBounds = false
         columnHeaderView.delegate = self
 
         rowHeaderView.frame = bounds
