@@ -171,15 +171,20 @@ extension SpreadsheetView {
         }
 
         let mergedCells = dataSource.mergedCells(in: self)
+        var invalidMergedCells: [CellRange] = []
+        
         let mergedCellLayouts: [Location: CellRange] = { () in
             var layouts = [Location: CellRange]()
             for mergedCell in mergedCells {
+                var isValid = true
                 if (mergedCell.from.column < frozenColumns && mergedCell.to.column >= frozenColumns) ||
                     (mergedCell.from.row < frozenRows && mergedCell.to.row >= frozenRows) {
                     fatalError("cannot merge frozen and non-frozen column or rows")
                 }
                 for column in mergedCell.from.column...mergedCell.to.column {
                     for row in mergedCell.from.row...mergedCell.to.row {
+                        guard isValid else { continue }
+                        
                         guard column < numberOfColumns && row < numberOfRows else {
                             fatalError("the range of `mergedCell` cannot exceed the total column or row count")
                         }
@@ -191,13 +196,18 @@ extension SpreadsheetView {
                             if mergedCell.contains(existingMergedCell) {
                                 layouts[location] = nil
                             } else {
-                                fatalError("cannot merge cells in a range that overlap existing merged cells")
+                                isValid = false
+                                invalidMergedCells.append(mergedCell)
+                                //fatalError("cannot merge cells in a range that overlap existing merged cells")
                             }
                         }
                         mergedCell.size = nil
                         layouts[location] = mergedCell
                     }
                 }
+            }
+            if !invalidMergedCells.isEmpty {
+                print("invalid merged cells found at \(invalidMergedCells)")
             }
             return layouts
         }()
